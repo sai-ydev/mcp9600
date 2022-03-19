@@ -7,6 +7,7 @@
 
 #include "mcp9600.h"
 #include "math.h"
+#include "stdio.h"
 
 MCP9600::MCP9600(u8 IIC_ADDR) {
 	set_iic_addr(IIC_ADDR);
@@ -22,7 +23,7 @@ err_t MCP9600::init(u8 therm_type, I2C_HandleTypeDef *i2c) {
 	IIC_begin(i2c);
 	ret = read_version(&ver);
 	if (!ret) {
-		printf("version = %X", ver);
+		printf("version = %X\r\n", ver);
 	}
 	if (ret == set_therm_type(therm_type)) {
 		return ret;

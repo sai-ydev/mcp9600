@@ -25,10 +25,10 @@ typedef enum {
     ERROR_OTHERS = -128,
 } err_t;
 
-#define CHECK_RESULT(a,b)   do{if(a==b)  {    \
-            printf("%s", __FILE__);    \
-            printf("%d", __LINE__);   \
-            printf(" error code = %d", a);  \
+#define CHECK_RESULT(a,b)   do{if(a!=b)  {    \
+            printf("%s\r\n", __FILE__);    \
+            printf("%d\r\n", __LINE__);   \
+            printf(" error code = %d\r\n", a);  \
             return a;   \
         }}while(0)
 
@@ -58,7 +58,7 @@ typedef enum {
 #define VERSION_ID_REG_ADDR                 0x20
 
 
-#define DEFAULT_IIC_ADDR  0X60
+#define DEFAULT_IIC_ADDR  					(0X60 << 1)
 
 #define RESOLUTION_0_5_DEGREE               0
 #define RESOLUTION_0_25_DEGREE              0X01
@@ -122,8 +122,9 @@ typedef enum {
 
 class MCP9600_IIC_OPRTS {
   public:
-	void IIC_begin(I2C_HandleTypeDef *i2c){
-		i2c = i2c;
+
+	void IIC_begin(I2C_HandleTypeDef *hi2c){
+		i2c = hi2c;
 	}
     err_t IIC_write_byte(u8 reg, u8 byte);
     err_t IIC_read_byte(u8 reg, u8* byte);
@@ -132,8 +133,9 @@ class MCP9600_IIC_OPRTS {
     err_t IIC_write_16bit(u8 reg, u16 value);
     err_t IIC_read_bytes(u8 start_reg, u8* data, u32 data_len);
   private:
-    u8 _IIC_ADDR;
     I2C_HandleTypeDef *i2c;
+    u8 _IIC_ADDR;
+
 };
 
 
