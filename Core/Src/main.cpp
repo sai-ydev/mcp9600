@@ -42,7 +42,6 @@
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
 UART_HandleTypeDef huart2;
-MCP9600 thermocpl;
 
 /* USER CODE BEGIN PV */
 
@@ -66,7 +65,7 @@ int __io_putchar(int ch) {
 }
 }
 
-err_t sensor_basic_config() {
+err_t sensor_basic_config(MCP9600 &thermocpl) {
 	err_t ret = NO_ERROR;
 	CHECK_RESULT(ret, thermocpl.set_filt_coefficients(FILT_MID));
 	CHECK_RESULT(ret,
@@ -77,22 +76,20 @@ err_t sensor_basic_config() {
 	return ret;
 }
 
-err_t get_temperature(float* value) {
-    err_t ret = NO_ERROR;
-    float hot_junc = 0;
-    float junc_delta = 0;
-    float cold_junc = 0;
-    CHECK_RESULT(ret, thermocpl.read_hot_junc(&hot_junc));
-    CHECK_RESULT(ret, thermocpl.read_junc_temp_delta(&junc_delta));
-    CHECK_RESULT(ret, thermocpl.read_cold_junc(&cold_junc));
+err_t get_temperature(MCP9600 &thermocpl) {
+	err_t ret = NO_ERROR;
+	float hot_junc = 0;
+	float junc_delta = 0;
+	float cold_junc = 0;
+	CHECK_RESULT(ret, thermocpl.read_hot_junc(&hot_junc));
+	CHECK_RESULT(ret, thermocpl.read_junc_temp_delta(&junc_delta));
+	CHECK_RESULT(ret, thermocpl.read_cold_junc(&cold_junc));
 
-    printf("hot junc= %3.2fC\r\n", hot_junc);
-    printf("junc_delta=%3.2fC\r\n", junc_delta);
-    printf("cold_junc=%3.2fC\r\n", cold_junc);
+	printf("hot junc= %3.2fC\r\n", hot_junc);
+	printf("junc_delta=%3.2fC\r\n", junc_delta);
+	printf("cold_junc=%3.2fC\r\n", cold_junc);
 
-    *value = hot_junc;
-
-    return ret;
+	return ret;
 }
 
 /* USER CODE END 0 */
@@ -103,6 +100,8 @@ err_t get_temperature(float* value) {
  */
 int main(void) {
 	/* USER CODE BEGIN 1 */
+	MCP9600 thermocpl1((0x60 << 1));
+	MCP9600 thermocpl2((0x67 << 1));
 
 	/* USER CODE END 1 */
 
@@ -127,27 +126,38 @@ int main(void) {
 	MX_USART2_UART_Init();
 	MX_I2C1_Init();
 	/* USER CODE BEGIN 2 */
-	if (thermocpl.init(THER_TYPE_K, &hi2c1)) {
+	if (thermocpl1.init(THER_TYPE_K, &hi2c1)) {
+		printf("sensor init failed!!\r\n");
+	} else {
+		printf("Sensor 1 Initialized!\r\n");
+	}
+
+	if (thermocpl2.init(THER_TYPE_K, &hi2c1)) {
 		printf("sensor init failed!!\r\n");
 	} else {
 		printf("Sensor Initialized!\r\n");
 	}
 
-	if(sensor_basic_config() != NO_ERROR){
+	if (sensor_basic_config(thermocpl1) != NO_ERROR) {
 		Error_Handler();
 	}
+
+	if (sensor_basic_config(thermocpl2) != NO_ERROR) {
+			Error_Handler();
+		}
 
 	/* USER CODE END 2 */
 
 	/* Infinite loop */
 	/* USER CODE BEGIN WHILE */
 	while (1) {
-		float temp = 0.0;
 		/* USER CODE END WHILE */
 
-
 		/* USER CODE BEGIN 3 */
-		get_temperature(&temp);
+		printf("Sensor 1 Temperature: \r\n");
+		get_temperature (thermocpl1);
+		printf("Sensor 2 Temperature: \r\n");
+		get_temperature (thermocpl2);
 		HAL_Delay(1000);
 
 	}
